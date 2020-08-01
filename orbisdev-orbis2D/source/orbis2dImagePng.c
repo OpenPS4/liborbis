@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
-#include <ps4link.h>
 #include <png.h>
 #include "orbis2d.h"
+#include <orbislink.h>
 
 #define PNG_SIGSIZE (8)
 
@@ -172,13 +172,13 @@ Orbis2dTexture *orbis2dLoadPngFromHost_v2(const char *path)
 
 	if(fd<0)  //If we can't open file from host0 print  the error and return
 	{
-		debugNetPrintf(DEBUG,"[PS4LINK] ps4LinkOpen returned error %d\n",fd);
+		debugNetPrintf(DEBUGNET_DEBUG,"[PS4LINK] ps4LinkOpen returned error %d\n",fd);
 		return NULL;
 	}
 	filesize=ps4LinkLseek(fd,0,SEEK_END);  // Seek to end to get file size
 	if(filesize<0)                         // If we get an error print it and return
 	{
-		debugNetPrintf(DEBUG,"[PS4LINK] ps4LinkSeek returned error %d\n",fd);
+		debugNetPrintf(DEBUGNET_DEBUG,"[PS4LINK] ps4LinkSeek returned error %d\n",fd);
 		ps4LinkClose(fd);
 		return NULL;
 	}
@@ -193,14 +193,14 @@ Orbis2dTexture *orbis2dLoadPngFromHost_v2(const char *path)
 
 	if(numread!=filesize)  //if we don't get filesize bytes we are in trouble
 	{
-		debugNetPrintf(DEBUG,"[PS4LINK] ps4LinkRead returned error %d\n",numread);
+		debugNetPrintf(DEBUGNET_DEBUG,"[PS4LINK] ps4LinkRead returned error %d\n",numread);
 		return NULL;
 	}
 
 	return orbis2dLoadPngFromBuffer(buf);  //create png from buf
 }
 
-#include <orbisFile.h>
+/*#include <orbisFile.h>
 Orbis2dTexture *orbis2dLoadPngFromHost_v3(const char *path)
 {
     char *buf = orbisFileGetFileContent(path);
@@ -209,7 +209,7 @@ Orbis2dTexture *orbis2dLoadPngFromHost_v3(const char *path)
         return orbis2dLoadPngFromBuffer(buf);  //create png from buf
     }
     return NULL;
-}
+}*/
 
 // uses standard open/lseek/read/close to access sandbox'ed content
 Orbis2dTexture *orbis2dLoadPngFromSandBox(const char *path)
@@ -222,13 +222,13 @@ Orbis2dTexture *orbis2dLoadPngFromSandBox(const char *path)
 
 	if(fd<0)  //If we can't open file, print the error and return
 	{
-		debugNetPrintf(DEBUG,"open returned error %d\n",fd);
+		debugNetPrintf(DEBUGNET_DEBUG,"open returned error %d\n",fd);
 		return NULL;
 	}
 	filesize=lseek(fd,0,SEEK_END);  // Seek to end to get file size
 	if(filesize<0)                  // If we get an error print it and return
 	{
-		debugNetPrintf(DEBUG,"lseek returned error %d\n",fd);
+		debugNetPrintf(DEBUGNET_DEBUG,"lseek returned error %d\n",fd);
 		close(fd);
 		return NULL;
 	}
@@ -243,7 +243,7 @@ Orbis2dTexture *orbis2dLoadPngFromSandBox(const char *path)
 
 	if(numread!=filesize)  //if we don't get filesize bytes we are in trouble
 	{
-		debugNetPrintf(DEBUG,"read returned error %d\n",numread);
+		debugNetPrintf(DEBUGNET_DEBUG,"read returned error %d\n",numread);
 		return NULL;
 	}
 

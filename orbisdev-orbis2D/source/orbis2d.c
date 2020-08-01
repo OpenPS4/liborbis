@@ -7,14 +7,14 @@
 #include <stdlib.h>
 #include <string.h>		 // memset(), memcpy()
 #include <sys/param.h>
-#include <kernel.h>
-#include <types/event.h>
+#include <orbis/libkernel.h>
+//#include <types/event.h>
 
-
-#include <gnmdriver.h>
-#include <systemservice.h>
-#include <videoout.h>
-#include <types/userservice.h>
+#include <ps4sdk.h>
+//#include <gnmdriver.h>
+//#include <systemservice.h>
+//#include <videoout.h>
+//#include <types/userservice.h>
 #include <debugnet.h>
 #include "orbis2d.h"
 
@@ -36,10 +36,10 @@ void orbis2dFinish()
 		{		
 			ret=sceVideoOutClose(orbconf->videoHandle);
 		
-			debugNetPrintf(DEBUG,"liborbis2d sceVideoOutClose return 0x%8x\n",ret);
+			debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutClose return 0x%8x\n",ret);
 		}
 		orbconf->orbis2d_initialized=-1;
-		debugNetPrintf(DEBUG,"liborbis2d finished\n");
+		debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d finished\n");
 	}
 	if(dumpBuf) free(dumpBuf), dumpBuf = NULL;
 }
@@ -104,13 +104,13 @@ int orbis2dInitWithConf(Orbis2dConfig *conf)
 	ret=orbis2dSetConf(conf);
 	if(ret)
 	{
-		debugNetPrintf(DEBUG,"liborbis2d already initialized using configuration external\n");
-		debugNetPrintf(DEBUG,"orbis2d_initialized=%d\n",orbconf->orbis2d_initialized);
-		debugNetPrintf(DEBUG,"ready to have a lot of fun...\n");
+		debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d already initialized using configuration external\n");
+		debugNetPrintf(DEBUGNET_DEBUG,"orbis2d_initialized=%d\n",orbconf->orbis2d_initialized);
+		debugNetPrintf(DEBUGNET_DEBUG,"ready to have a lot of fun...\n");
 
 		// cache the framebuffer size once, then reuse value
 		bufSize = orbconf->pitch*orbconf->height*orbconf->bytesPerPixel;
-		debugNetPrintf(DEBUG,"caching framebuffersize: %db\n", bufSize);
+		debugNetPrintf(DEBUGNET_DEBUG,"caching framebuffersize: %db\n", bufSize);
 
 		return orbconf->orbis2d_initialized;
 	}
@@ -162,16 +162,16 @@ int orbis2dWaitFlipArg(SceKernelEqueue *flipQueue)
 			ret=sceKernelWaitEqueue(*flipQueue, &event, 1, &event_out, 0);
 			if(ret>=0)
 			{
-				//debugNetPrintf(DEBUG,"liborbis2d sceKernelWaitEqueue return %d\n",ret);
+				//debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceKernelWaitEqueue return %d\n",ret);
 			}
 			else
 			{
-				debugNetPrintf(DEBUG,"liborbis2d sceKernelWaitEqueue return error 0x%8x\n",ret);
+				debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceKernelWaitEqueue return error 0x%8x\n",ret);
 			}
 		}
 		else
 		{
-			debugNetPrintf(DEBUG,"liborbis2d sceVideoOutGetFlipStatus return error 0x%8x\n",ret);
+			debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutGetFlipStatus return error 0x%8x\n",ret);
 		}
 
 	}
@@ -466,7 +466,7 @@ void orbis2dClearBuffer(char flag)
 void orbis2dSwapBuffers()
 {
 	orbconf->currentBuffer=(orbconf->currentBuffer+1)%ORBIS2D_DISPLAY_BUFFER_NUM;
-	//debugNetPrintf(DEBUG,"liborbis2d currentBuffer  %d\n",orbconf->currentBuffer);
+	//debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d currentBuffer  %d\n",orbconf->currentBuffer);
 }
 
 void *orbis2dMalloc(int size)
@@ -475,7 +475,7 @@ void *orbis2dMalloc(int size)
 
 	if((orbconf->videoMemStackAddr+size)>orbconf->videoMemStackTopAddr)
 	{
-		debugNetPrintf(DEBUG,"orbis2dMalloc videoMemStackAddr 0x%lx greater than videoMemStackTopAddr 0x%lx \n",orbconf->videoMemStackAddr,orbconf->videoMemStackTopAddr);
+		debugNetPrintf(DEBUGNET_DEBUG,"orbis2dMalloc videoMemStackAddr 0x%lx greater than videoMemStackTopAddr 0x%lx \n",orbconf->videoMemStackAddr,orbconf->videoMemStackTopAddr);
 		
 		return NULL;
 	}
@@ -491,9 +491,9 @@ void orbis2dAllocDisplayBuffer(int displayBufNum)
 	for(int i=0;i<displayBufNum;i++)
 	{
 		orbconf->surfaceAddr[i]= orbis2dMalloc(bufSize);
-		debugNetPrintf(DEBUG,"liborbis2d orbis2dMalloc buffer %d, new pointer %p \n",i,	orbconf->surfaceAddr[i]);
+		debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d orbis2dMalloc buffer %d, new pointer %p \n",i,	orbconf->surfaceAddr[i]);
 	}
-	debugNetPrintf(DEBUG,"liborbis2d orbis2dAllocDisplayBuffer done\n");
+	debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d orbis2dAllocDisplayBuffer done\n");
 }
 int orbis2dInitDisplayBuffer(int num, int bufIndexStart)
 {
@@ -501,11 +501,11 @@ int orbis2dInitDisplayBuffer(int num, int bufIndexStart)
 	int ret;
 	sceVideoOutSetBufferAttribute(&attr,orbconf->pixelFormat,orbconf->tilingMode,0,orbconf->width,orbconf->height,orbconf->pitch);
 
-	debugNetPrintf(DEBUG,"liborbis2d sceVideoOutSetBufferAttribute done\n");
+	debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutSetBufferAttribute done\n");
 	
 	ret=sceVideoOutRegisterBuffers(orbconf->videoHandle, bufIndexStart, orbconf->surfaceAddr, num, &attr);
 
-	debugNetPrintf(DEBUG,"liborbis2d sceVideoOutRegisterBuffers return 0x%8x\n",ret);
+	debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutRegisterBuffers return 0x%8x\n",ret);
 
 	return ret;
 }
@@ -544,38 +544,38 @@ int orbis2dInitVideoHandle()
 	
 	if(handle<0)
 	{
-		debugNetPrintf(DEBUG,"liborbis2d sceVideoOutOpen return error 0x%8x\n",handle);
+		debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutOpen return error 0x%8x\n",handle);
 
 	}
 	else
 	{
-		debugNetPrintf(DEBUG,"liborbis2d sceVideoOutOpen return video handle 0x%8x\n",handle);
+		debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutOpen return video handle 0x%8x\n",handle);
 
 		if(handle>0)
 		{
 			ret=sceKernelCreateEqueue(&orbconf->flipQueue,"queue to wait flip");
 			if(ret>=0)
 			{
-				debugNetPrintf(DEBUG,"sceKernelCreateEqueue return %d\n",ret);
+				debugNetPrintf(DEBUGNET_DEBUG,"sceKernelCreateEqueue return %d\n",ret);
 				
 				ret=sceVideoOutAddFlipEvent(orbconf->flipQueue, handle, NULL);
 				if(ret<0)
 				{
-					debugNetPrintf(DEBUG,"liborbis2d sceVideoOutAddFlipEvent return 0x%8x\n",ret);
+					debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutAddFlipEvent return 0x%8x\n",ret);
 					ret=sceVideoOutClose(handle);
-					debugNetPrintf(DEBUG,"liborbis2d sceVideoOutClose return %d\n",ret);
+					debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutClose return %d\n",ret);
 					handle=-1;
 				}
 				else
 				{
-					debugNetPrintf(DEBUG,"liborbis2d sceVideoOutAddFlipEvent return %d\n",ret);		
+					debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutAddFlipEvent return %d\n",ret);		
 				}
 			}
 			else
 			{
-				debugNetPrintf(DEBUG,"sceKernelCreateEqueue return error 0x%8x\n",ret);
+				debugNetPrintf(DEBUGNET_DEBUG,"sceKernelCreateEqueue return error 0x%8x\n",ret);
 				ret=sceVideoOutClose(handle);
-				debugNetPrintf(DEBUG,"liborbis2d sceVideoOutClose return %d\n",ret);
+				debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d sceVideoOutClose return %d\n",ret);
 				
 				handle=-1;
 			}
@@ -594,7 +594,7 @@ int orbis2dInit()
 	}
 	if (orbconf->orbis2d_initialized==1) 
 	{
-		debugNetPrintf(DEBUG,"liborbis2d is already initialized!\n");
+		debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d is already initialized!\n");
 		return orbconf->orbis2d_initialized;
 	}
 	//Get video handle
@@ -608,7 +608,7 @@ int orbis2dInit()
 
 		if(ret==0)
 		{	
-			debugNetPrintf(DEBUG,"liborbis2d video memory initialized\n");
+			debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d video memory initialized\n");
 
 			//init memory for display buffers
 			orbis2dAllocDisplayBuffer(ORBIS2D_DISPLAY_BUFFER_NUM);
@@ -635,7 +635,7 @@ int orbis2dInit()
 		
 		
 		orbconf->orbis2d_initialized=1;
-		debugNetPrintf(DEBUG,"liborbis2d initialized\n");
+		debugNetPrintf(DEBUGNET_DEBUG,"liborbis2d initialized\n");
 		
 	}
 	return orbconf->orbis2d_initialized;

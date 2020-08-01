@@ -7,8 +7,8 @@
 
 #include <stdint.h>
 
-#include <types/kernel.h>
-#include <types/videoout.h>
+#include <orbis/libkernel.h>
+#include <orbis/libSceVideoOut.h>
 
 #ifdef __cplusplus
 extern "C" {
